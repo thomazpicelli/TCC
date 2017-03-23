@@ -4,7 +4,6 @@ computeCost=function(X,y,theta){
   return(sum(z)/(2*nrow(X)))
 }
 
-
 gradientDescent=function(X, y, theta, alpha, iters){
   gd=list()
   cost=rep(0,iters)
@@ -27,4 +26,12 @@ savePlot <- function(myPlot, name) {
   pdf(name)
   print(myPlot)
   dev.off()
+}
+
+Sturge <- function(n){
+  return(1+(3.322*log10(n)))
+}
+
+Intervalo <- function(n, min, max){
+  return(round((max-min)/Sturge(n),2))
 }
