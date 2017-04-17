@@ -33,5 +33,6 @@ Sturge <- function(n){
 }
 
 Intervalo <- function(n, min, max){
-  return(round((max-min)/Sturge(n),2))
+  return(round((max-min)/Sturge(n)))
 }
+

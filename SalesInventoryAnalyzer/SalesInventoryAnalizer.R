@@ -10,8 +10,10 @@ load("C:/TCC/TCC/workspace.RData")
 
 # Load All Packages
 library(class)
+library(curl)
 library(readr)
 library(grid)
+library(gridExtra)
 library(ggplot2)
 library(data.table)
 library(caret)
@@ -22,6 +24,7 @@ library(MASS)      # to calculate the peseudo-inverse of a matrix
 library(reshape2)  # for data manipulation
 library(Cairo)
 library(cowplot)
+
 
 # Load All Functions
 source("./R/functions.R")
@@ -38,39 +41,152 @@ d1_sales$ReleaseYear <- as.factor(d1_sales$ReleaseYear)
 d2_hist_sales <- d1_sales[d1_sales$File_Type == 'Historical',]
 d3_actv_sales <- d1_sales[d1_sales$File_Type == 'Active',]
 
-# historico com venda + 60 dias
-d4_hist_sales_sold <- d2_hist_sales[d2_hist_sales$SoldFlag == 1,]
-d45_actv_sales_sold <- d3_actv_sales[d3_actv_sales$SoldFlag == 1,]
+# historico com venda + divisao mercado
+d4_hist_sales_mkt_d <- d2_hist_sales[d2_hist_sales$MarketingType == "D",]
+d5_hist_sales_mkt_s <- d2_hist_sales[d2_hist_sales$MarketingType == "S",]
+d6_actv_sales_mkt_d <- d3_actv_sales[d3_actv_sales$MarketingType == "D",]
+d7_actv_sales_mkt_s <- d3_actv_sales[d3_actv_sales$MarketingType == "S",]
 
-# historico com venda + 60 dias + divisao mercado
-d5_hist_sales_sold_mkt_d <- d4_hist_sales_sold[d4_hist_sales_sold$MarketingType == "D",]
-d6_hist_sales_sold_mkt_s <- d4_hist_sales_sold[d4_hist_sales_sold$MarketingType == "S",]
-d7_actv_sales_sold_mkt_d <- d3_actv_sales[d4_hist_sales_sold$MarketingType == "D",]
-d8_actv_sales_sold_mkt_s <- d3_actv_sales[d4_hist_sales_sold$MarketingType == "S",]
+# historico com venda + divisao mercado + 60 dias
+d8_hist_sales_mkt_d_sold <- d4_hist_sales_mkt_d[d4_hist_sales_mkt_d$SoldFlag == 1,]
+d9_hist_sales_mkt_d_not_sold <- d4_hist_sales_mkt_d[d4_hist_sales_mkt_d$SoldFlag == 0,]
+d10_hist_sales_mkt_s_sold <- d5_hist_sales_mkt_s[d5_hist_sales_mkt_s$SoldFlag == 1,]
+d11_hist_sales_mkt_s_not_sold <- d5_hist_sales_mkt_s[d5_hist_sales_mkt_s$SoldFlag == 0,]
+d12_actv_sales_mkt_d_sold <- d6_actv_sales_mkt_d[d6_actv_sales_mkt_d$SoldFlag == 1,]
+d13_actv_sales_mkt_d_not_sold <- d6_actv_sales_mkt_d[d6_actv_sales_mkt_d$SoldFlag == 0,]
+d14_actv_sales_mkt_s_sold <- d7_actv_sales_mkt_s[d7_actv_sales_mkt_s$SoldFlag == 1,]
+d15_actv_sales_mkt_s_not_sold <- d7_actv_sales_mkt_s[d7_actv_sales_mkt_s$SoldFlag == 0,]
 
-d9_hist_sales_sold_mkt_d_release_true <- d5_hist_sales_sold_mkt_d[d5_hist_sales_sold_mkt_d$New_Release_Flag == 1,]
-d10_hist_sales_sold_mkt_d_release_false <- d5_hist_sales_sold_mkt_d[d5_hist_sales_sold_mkt_d$New_Release_Flag == 0,]
-d11_hist_sales_sold_mkt_s_release_true <- d6_hist_sales_sold_mkt_s[d6_hist_sales_sold_mkt_s$New_Release_Flag == 1,]
-d12_hist_sales_sold_mkt_s_release_false <- d6_hist_sales_sold_mkt_s[d6_hist_sales_sold_mkt_s$New_Release_Flag == 0,]
+# historico com venda + divisao mercado + 60 dias + releaseFlag
+d16_hist_sales_mkt_d_sold_release <- d8_hist_sales_mkt_d_sold[d8_hist_sales_mkt_d_sold$New_Release_Flag == 1,]
+d17_hist_sales_mkt_d_sold_not_release <- d8_hist_sales_mkt_d_sold[d8_hist_sales_mkt_d_sold$New_Release_Flag == 0,]
+d18_hist_sales_mkt_d_not_sold_release <- d9_hist_sales_mkt_d_not_sold[d9_hist_sales_mkt_d_not_sold$New_Release_Flag == 1,]
+d19_hist_sales_mkt_d_not_sold_not_release <- d9_hist_sales_mkt_d_not_sold[d9_hist_sales_mkt_d_not_sold$New_Release_Flag == 0,]
 
-d13_actv_sales_sold_mkt_d_release_true <- d7_actv_sales_sold_mkt_d[d7_actv_sales_sold_mkt_d$New_Release_Flag == 1,]
-d14_actv_sales_sold_mkt_d_release_false <- d7_actv_sales_sold_mkt_d[d7_actv_sales_sold_mkt_d$New_Release_Flag == 0,]
-d15_actv_sales_sold_mkt_s_release_true <- d8_actv_sales_sold_mkt_s[d8_actv_sales_sold_mkt_s$New_Release_Flag == 1,]
-d16_actv_sales_sold_mkt_s_release_false <- d8_actv_sales_sold_mkt_s[d8_actv_sales_sold_mkt_s$New_Release_Flag == 0,]
+D20_hist_sales_mkt_s_sold_release <- d10_hist_sales_mkt_s_sold[d10_hist_sales_mkt_s_sold$New_Release_Flag == 1,]
+D21_hist_sales_mkt_s_sold_not_release <- d10_hist_sales_mkt_s_sold[d10_hist_sales_mkt_s_sold$New_Release_Flag == 0,]
+d22_hist_sales_mkt_s_not_sold_release <- d11_hist_sales_mkt_s_not_sold[d11_hist_sales_mkt_s_not_sold$New_Release_Flag == 1,]
+d23_hist_sales_mkt_s_not_sold_not_release <- d11_hist_sales_mkt_s_not_sold[d11_hist_sales_mkt_s_not_sold$New_Release_Flag == 0,]
+
+d24_actv_sales_mkt_d_sold_release <- d12_actv_sales_mkt_d_sold[d12_actv_sales_mkt_d_sold$New_Release_Flag == 1,]
+d25_actv_sales_mkt_d_sold_not_release <- d12_actv_sales_mkt_d_sold[d12_actv_sales_mkt_d_sold$New_Release_Flag == 0,]
+d26_actv_sales_mkt_d_not_sold_release <- d13_actv_sales_mkt_d_not_sold[d13_actv_sales_mkt_d_not_sold$New_Release_Flag == 1,]
+d27_actv_sales_mkt_d_not_sold_not_release <- d13_actv_sales_mkt_d_not_sold[d13_actv_sales_mkt_d_not_sold$New_Release_Flag == 0,]
+
+d28_actv_sales_mkt_s_sold_release <- d14_actv_sales_mkt_s_sold[d14_actv_sales_mkt_s_sold$New_Release_Flag == 1,]
+d29_actv_sales_mkt_s_sold_not_release <- d14_actv_sales_mkt_s_sold[d14_actv_sales_mkt_s_sold$New_Release_Flag == 0,]
+d30_actv_sales_mkt_s_not_sold_release <- d15_actv_sales_mkt_s_not_sold[d15_actv_sales_mkt_s_not_sold$New_Release_Flag == 1,]
+d31_actv_sales_mkt_s_not_sold_not_release <- d15_actv_sales_mkt_s_not_sold[d15_actv_sales_mkt_s_not_sold$New_Release_Flag == 0,]
+
+---------------------------------------
+  
+d16_hist_sales_mkt_d_sold_release <- d8_hist_sales_mkt_d_sold[d8_hist_sales_mkt_d_sold$New_Release_Flag == 1,]
+d17_hist_sales_mkt_d_sold_not_release <- d8_hist_sales_mkt_d_sold[d8_hist_sales_mkt_d_sold$New_Release_Flag == 0,]
+d18_hist_sales_mkt_d_not_sold_release <- d9_hist_sales_mkt_d_not_sold[d9_hist_sales_mkt_d_not_sold$New_Release_Flag == 1,]
+d19_hist_sales_mkt_d_not_sold_not_release <- d9_hist_sales_mkt_d_not_sold[d9_hist_sales_mkt_d_not_sold$New_Release_Flag == 0,]
+
+D20_hist_sales_mkt_s_sold_release <- d10_hist_sales_mkt_s_sold[d10_hist_sales_mkt_s_sold$New_Release_Flag == 1,]
+D21_hist_sales_mkt_s_sold_not_release <- d10_hist_sales_mkt_s_sold[d10_hist_sales_mkt_s_sold$New_Release_Flag == 0,]
+d22_hist_sales_mkt_s_not_sold_release <- d11_hist_sales_mkt_s_not_sold[d11_hist_sales_mkt_s_not_sold$New_Release_Flag == 1,]
+d23_hist_sales_mkt_s_not_sold_not_release <- d11_hist_sales_mkt_s_not_sold[d11_hist_sales_mkt_s_not_sold$New_Release_Flag == 0,]
+
+d24_actv_sales_mkt_d_sold_release <- d12_actv_sales_mkt_d_sold[d12_actv_sales_mkt_d_sold$New_Release_Flag == 1,]
+d25_actv_sales_mkt_d_sold_not_release <- d12_actv_sales_mkt_d_sold[d12_actv_sales_mkt_d_sold$New_Release_Flag == 0,]
+d26_actv_sales_mkt_d_not_sold_release <- d13_actv_sales_mkt_d_not_sold[d13_actv_sales_mkt_d_not_sold$New_Release_Flag == 1,]
+d27_actv_sales_mkt_d_not_sold_not_release <- d13_actv_sales_mkt_d_not_sold[d13_actv_sales_mkt_d_not_sold$New_Release_Flag == 0,]
+
+d28_actv_sales_mkt_s_sold_release <- d14_actv_sales_mkt_s_sold[d14_actv_sales_mkt_s_sold$New_Release_Flag == 1,]
+d29_actv_sales_mkt_s_sold_not_release <- d14_actv_sales_mkt_s_sold[d14_actv_sales_mkt_s_sold$New_Release_Flag == 0,]
+d30_actv_sales_mkt_s_not_sold_release <- d15_actv_sales_mkt_s_not_sold[d15_actv_sales_mkt_s_not_sold$New_Release_Flag == 1,]
+d31_actv_sales_mkt_s_not_sold_not_release <- d15_actv_sales_mkt_s_not_sold[d15_actv_sales_mkt_s_not_sold$New_Release_Flag == 0,]
 
 
-histogram=as.data.frame(
-    cbind(d10_hist_sales_sold_mkt_d_release_false$SoldCount
-        ##,
-        ##d14_actv_sales_sold_mkt_d_release_false$LowNetPrice, 
-        ##d14_actv_sales_sold_mkt_d_release_false$LowNetPrice
-        ))
-names(histogram)=c("LowNetPrice","LowUserPrice", "PriceReg")
-histogram_melt=melt(histogram)
-histogram_melt%>%ggplot(aes(x=value,fill=variable, color=variable))+geom_density(alpha = 0.4)+ggtitle('Histogram')
 
-grid.arrange(g1, g2, g3, ncol=1, top="The iris data")
-plot_grid(sp, bp, labels=c("A", "B"), ncol = 2, nrow = 1)
+hist_sales_mkt_d_sold_release <- d1_sales[d1_sales$File_Type == 'Historical' & d1_sales$MarketingType == "D" & d1_sales$SoldFlag == 1 & d1_sales$New_Release_Flag == 1,]
+hist_sales_mkt_d_sold_not_release <- d1_sales[d1_sales$File_Type == 'Historical' & d1_sales$MarketingType == "D" & d1_sales$SoldFlag == 1 & d1_sales$New_Release_Flag == 0,]
+hist_sales_mkt_d_not_sold_release <- d1_sales[d1_sales$File_Type == 'Historical' & d1_sales$MarketingType == "D" & d1_sales$SoldFlag == 0 & d1_sales$New_Release_Flag == 1,]
+hist_sales_mkt_d_not_sold_not_release <- d1_sales[d1_sales$File_Type == 'Historical' & d1_sales$MarketingType == "D" & d1_sales$SoldFlag == 0 & d1_sales$New_Release_Flag == 0,]
+
+hist_sales_mkt_s_sold_release <- d1_sales[d1_sales$File_Type == 'Historical' & d1_sales$MarketingType == "S" & d1_sales$SoldFlag == 1 & d1_sales$New_Release_Flag == 1,]
+hist_sales_mkt_s_sold_not_release <- d1_sales[d1_sales$File_Type == 'Historical' & d1_sales$MarketingType == "S" & d1_sales$SoldFlag == 1 & d1_sales$New_Release_Flag == 0,]
+hist_sales_mkt_s_not_sold_release <- d1_sales[d1_sales$File_Type == 'Historical' & d1_sales$MarketingType == "S" & d1_sales$SoldFlag == 0 & d1_sales$New_Release_Flag == 1,]
+hist_sales_mkt_s_not_sold_not_release <- d1_sales[d1_sales$File_Type == 'Historical' & d1_sales$MarketingType == "S" & d1_sales$SoldFlag == 0 & d1_sales$New_Release_Flag == 0,]
+
+actv_sales_mkt_d_release <- d1_sales[d1_sales$File_Type == 'Active' & d1_sales$MarketingType == "D" & d1_sales$New_Release_Flag == 1,]
+actv_sales_mkt_d_not_release <- d1_sales[d1_sales$File_Type == 'Active' & d1_sales$MarketingType == "D" & d1_sales$New_Release_Flag == 0,]
+actv_sales_mkt_s_release <- d1_sales[d1_sales$File_Type == 'Active' & d1_sales$MarketingType == "S" & d1_sales$New_Release_Flag == 1,]
+actv_sales_mkt_s_not_release <- d1_sales[d1_sales$File_Type == 'Active' & d1_sales$MarketingType == "S" & d1_sales$New_Release_Flag == 0,]
+
+
+# First analises ####
+hist(hist_sales_mkt_d_sold_release$PriceReg, breaks=Intervalo(nrow(hist_sales_mkt_d_sold_release),min(hist_sales_mkt_d_sold_release$PriceReg, na.rm=TRUE),max(hist_sales_mkt_d_sold_release$PriceReg, na.rm=TRUE)))
+
+# comparacao do preco de historico do D (vendas e release)
+P_1 <- ggplot(data=hist_sales_mkt_d_sold_release, aes(hist_sales_mkt_d_sold_release$PriceReg)) + geom_histogram(aes(y =..density..),breaks=seq(min(hist_sales_mkt_d_sold_release$PriceReg, na.rm=TRUE), max(hist_sales_mkt_d_sold_release$PriceReg, na.rm=TRUE), by = Intervalo(nrow(hist_sales_mkt_d_sold_release),min(hist_sales_mkt_d_sold_release$PriceReg, na.rm=TRUE),max(hist_sales_mkt_d_sold_release$PriceReg, na.rm=TRUE))), col="blue", fill="blue", alpha = .2) + geom_density(col=2) + labs(title="hist_sales_mkt_d_sold_release") + labs(x="", y="Price")
+P_2 <- ggplot(data=hist_sales_mkt_d_sold_not_release, aes(hist_sales_mkt_d_sold_not_release$PriceReg)) + geom_histogram(aes(y =..density..),breaks=seq(min(hist_sales_mkt_d_sold_not_release$PriceReg, na.rm=TRUE), max(hist_sales_mkt_d_sold_not_release$PriceReg, na.rm=TRUE), by = Intervalo(nrow(hist_sales_mkt_d_sold_not_release),min(hist_sales_mkt_d_sold_not_release$PriceReg, na.rm=TRUE),max(hist_sales_mkt_d_sold_not_release$PriceReg, na.rm=TRUE))), col="blue", fill="blue", alpha = .2) + geom_density(col=2) + labs(title="hist_sales_mkt_d_sold_not_release") + labs(x="", y="Price")
+P_3 <- ggplot(data=hist_sales_mkt_d_not_sold_release, aes(hist_sales_mkt_d_not_sold_release$PriceReg)) + geom_histogram(aes(y =..density..),breaks=seq(min(hist_sales_mkt_d_not_sold_release$PriceReg, na.rm=TRUE), max(hist_sales_mkt_d_not_sold_release$PriceReg, na.rm=TRUE), by = Intervalo(nrow(hist_sales_mkt_d_not_sold_release),min(hist_sales_mkt_d_not_sold_release$PriceReg, na.rm=TRUE),max(hist_sales_mkt_d_not_sold_release$PriceReg, na.rm=TRUE))), col="blue", fill="blue", alpha = .2) + geom_density(col=2) + labs(title="hist_sales_mkt_d_not_sold_release") + labs(x="", y="Price")
+P_4 <- ggplot(data=hist_sales_mkt_d_not_sold_not_release, aes(hist_sales_mkt_d_not_sold_not_release$PriceReg)) + geom_histogram(aes(y =..density..),breaks=seq(min(hist_sales_mkt_d_not_sold_not_release$PriceReg, na.rm=TRUE), max(hist_sales_mkt_d_not_sold_not_release$PriceReg, na.rm=TRUE), by = Intervalo(nrow(hist_sales_mkt_d_not_sold_not_release),min(hist_sales_mkt_d_not_sold_not_release$PriceReg, na.rm=TRUE),max(hist_sales_mkt_d_not_sold_not_release$PriceReg, na.rm=TRUE))), col="blue", fill="blue", alpha = .2) + geom_density(col=2) + labs(title="hist_sales_mkt_d_not_sold_not_release") + labs(x="", y="Price")
+
+hist_preco_mkt_D <- plot_grid(P_1, P_2, P_3, P_4, ncol = 2, nrow = 2)
+savePlot(hist_preco_mkt_D, "./output/hist_preco_mkt_D.pdf")
+
+# comparacao das vendas por mercado
+a_1 <- ggplot(data=hist_sales_mkt_d_sold_release, aes(hist_sales_mkt_d_sold_release$SoldCount)) + geom_histogram(aes(y =..density..),breaks=seq(min(hist_sales_mkt_d_sold_release$SoldCount, na.rm=TRUE), max(hist_sales_mkt_d_sold_release$SoldCount, na.rm=TRUE), by = Intervalo(nrow(hist_sales_mkt_d_sold_release),min(hist_sales_mkt_d_sold_release$SoldCount, na.rm=TRUE),max(hist_sales_mkt_d_sold_release$SoldCount, na.rm=TRUE))), col="blue", fill="blue", alpha = .2) + geom_density(col=2) + labs(title="hist_sales_mkt_d_sold_release") + labs(x="", y="Sold")
+a_2 <- ggplot(data=hist_sales_mkt_d_sold_not_release, aes(hist_sales_mkt_d_sold_not_release$SoldCount)) + geom_histogram(aes(y =..density..),breaks=seq(min(hist_sales_mkt_d_sold_not_release$SoldCount, na.rm=TRUE), max(hist_sales_mkt_d_sold_not_release$SoldCount, na.rm=TRUE), by = Intervalo(nrow(hist_sales_mkt_d_sold_not_release),min(hist_sales_mkt_d_sold_not_release$SoldCount, na.rm=TRUE),max(hist_sales_mkt_d_sold_not_release$SoldCount, na.rm=TRUE))), col="blue", fill="blue", alpha = .2) + geom_density(col=2) + labs(title="hist_sales_mkt_d_sold_not_release") + labs(x="", y="Sold")
+a_3 <- ggplot(data=hist_sales_mkt_s_sold_release, aes(hist_sales_mkt_s_sold_release$SoldCount)) + geom_histogram(aes(y =..density..),breaks=seq(min(hist_sales_mkt_s_sold_release$SoldCount, na.rm=TRUE), max(hist_sales_mkt_s_sold_release$SoldCount, na.rm=TRUE), by = Intervalo(nrow(hist_sales_mkt_s_sold_release),min(hist_sales_mkt_s_sold_release$SoldCount, na.rm=TRUE),max(hist_sales_mkt_s_sold_release$SoldCount, na.rm=TRUE))), col="blue", fill="blue", alpha = .2) + geom_density(col=2) + labs(title="hist_sales_mkt_s_sold_release") + labs(x="", y="Sold")
+a_4 <- ggplot(data=hist_sales_mkt_s_sold_not_release, aes(hist_sales_mkt_s_sold_not_release$SoldCount)) + geom_histogram(aes(y =..density..),breaks=seq(min(hist_sales_mkt_s_sold_not_release$SoldCount, na.rm=TRUE), max(hist_sales_mkt_s_sold_not_release$SoldCount, na.rm=TRUE), by = Intervalo(nrow(hist_sales_mkt_s_sold_not_release),min(hist_sales_mkt_s_sold_not_release$SoldCount, na.rm=TRUE),max(hist_sales_mkt_s_sold_not_release$SoldCount, na.rm=TRUE))), col="blue", fill="blue", alpha = .2) + geom_density(col=2) + labs(title="hist_sales_mkt_s_sold_not_release") + labs(x="", y="Sold")
+
+hist_sold_market <- plot_grid(a_1, a_2, a_3, a_4,ncol = 2, nrow = 2)
+savePlot(hist_sold_market, "./output/hist_sold_market.pdf")
+
+----
+b_1 <- ggplot(data=actv_sales_mkt_d_release, aes(actv_sales_mkt_d_release$ItemCount)) + geom_histogram(aes(y =..density..),breaks=seq(min(actv_sales_mkt_d_release$ItemCount, na.rm=TRUE), max(actv_sales_mkt_d_release$ItemCount, na.rm=TRUE), by = Intervalo(nrow(actv_sales_mkt_d_release),min(hist_sales_mkt_d_sold_release$ItemCount, na.rm=TRUE),max(actv_sales_mkt_d_release$ItemCount, na.rm=TRUE))), col="blue", fill="blue", alpha = .2) + geom_density(col=2) + labs(title="actv_sales_mkt_d_release") + labs(x="", y="")
+b_2 <- ggplot(data=actv_sales_mkt_d_not_release, aes(actv_sales_mkt_d_not_release$ItemCount)) + geom_histogram(aes(y =..density..),breaks=seq(min(actv_sales_mkt_d_not_release$ItemCount, na.rm=TRUE), max(actv_sales_mkt_d_not_release$ItemCount, na.rm=TRUE), by = Intervalo(nrow(actv_sales_mkt_d_not_release),min(actv_sales_mkt_d_not_release$ItemCount, na.rm=TRUE),max(actv_sales_mkt_d_not_release$ItemCount, na.rm=TRUE))), col="blue", fill="blue", alpha = .2) + geom_density(col=2) + labs(title="actv_sales_mkt_d_not_release") + labs(x="", y="")
+b_3 <- ggplot(data=actv_sales_mkt_s_release, aes(actv_sales_mkt_s_release$ItemCount)) + geom_histogram(aes(y =..density..),breaks=seq(min(actv_sales_mkt_s_release$ItemCount, na.rm=TRUE), max(actv_sales_mkt_s_release$ItemCount, na.rm=TRUE), by = Intervalo(nrow(actv_sales_mkt_s_release),min(actv_sales_mkt_s_release$ItemCount, na.rm=TRUE),max(actv_sales_mkt_s_release$ItemCount, na.rm=TRUE))), col="blue", fill="blue", alpha = .2) + geom_density(col=2) + labs(title="actv_sales_mkt_s_release") + labs(x="", y="")
+b_4 <- ggplot(data=actv_sales_mkt_s_not_release, aes(actv_sales_mkt_s_not_release$ItemCount)) + geom_histogram(aes(y =..density..),breaks=seq(min(actv_sales_mkt_s_not_release$ItemCount, na.rm=TRUE), max(actv_sales_mkt_s_not_release$ItemCount, na.rm=TRUE), by = Intervalo(nrow(actv_sales_mkt_s_not_release),min(actv_sales_mkt_s_not_release$ItemCount, na.rm=TRUE),max(actv_sales_mkt_s_not_release$ItemCount, na.rm=TRUE))), col="blue", fill="blue", alpha = .2) + geom_density(col=2) + labs(title="actv_sales_mkt_s_not_release") + labs(x="", y="")
+
+
+actv_item_analise <- plot_grid(b_1, b_2, b_3, b_4,ncol = 2, nrow = 2)
+savePlot(actv_item_analise, "./output/histograma_estoque_ativo.pdf")
+-----
+
+c_1 <- ggplot(data=actv_sales_mkt_d_release, aes(actv_sales_mkt_d_release$StrengthFactor)) + geom_histogram(aes(y =..density..),breaks=seq(min(actv_sales_mkt_d_release$StrengthFactor, na.rm=TRUE), max(actv_sales_mkt_d_release$StrengthFactor, na.rm=TRUE), by = Intervalo(nrow(actv_sales_mkt_d_release),min(hist_sales_mkt_d_sold_release$StrengthFactor, na.rm=TRUE),max(actv_sales_mkt_d_release$StrengthFactor, na.rm=TRUE))), col="blue", fill="blue", alpha = .2) + geom_density(col=2) + labs(title="actv_sales_mkt_d_release") + labs(x="", y="")
+c_2 <- ggplot(data=actv_sales_mkt_d_not_release, aes(actv_sales_mkt_d_not_release$StrengthFactor)) + geom_histogram(aes(y =..density..),breaks=seq(min(actv_sales_mkt_d_not_release$StrengthFactor, na.rm=TRUE), max(actv_sales_mkt_d_not_release$StrengthFactor, na.rm=TRUE), by = Intervalo(nrow(actv_sales_mkt_d_not_release),min(actv_sales_mkt_d_not_release$StrengthFactor, na.rm=TRUE),max(actv_sales_mkt_d_not_release$StrengthFactor, na.rm=TRUE))), col="blue", fill="blue", alpha = .2) + geom_density(col=2) + labs(title="actv_sales_mkt_d_not_release") + labs(x="", y="")
+c_3 <- ggplot(data=actv_sales_mkt_s_release, aes(actv_sales_mkt_s_release$StrengthFactor)) + geom_histogram(aes(y =..density..),breaks=seq(min(actv_sales_mkt_s_release$StrengthFactor, na.rm=TRUE), max(actv_sales_mkt_s_release$StrengthFactor, na.rm=TRUE), by = Intervalo(nrow(actv_sales_mkt_s_release),min(actv_sales_mkt_s_release$StrengthFactor, na.rm=TRUE),max(actv_sales_mkt_s_release$StrengthFactor, na.rm=TRUE))), col="blue", fill="blue", alpha = .2) + geom_density(col=2) + labs(title="actv_sales_mkt_s_release") + labs(x="", y="")
+c_4 <- ggplot(data=actv_sales_mkt_s_not_release, aes(actv_sales_mkt_s_not_release$StrengthFactor)) + geom_histogram(aes(y =..density..),breaks=seq(min(actv_sales_mkt_s_not_release$StrengthFactor, na.rm=TRUE), max(actv_sales_mkt_s_not_release$StrengthFactor, na.rm=TRUE), by = Intervalo(nrow(actv_sales_mkt_s_not_release),min(actv_sales_mkt_s_not_release$StrengthFactor, na.rm=TRUE),max(actv_sales_mkt_s_not_release$StrengthFactor, na.rm=TRUE))), col="blue", fill="blue", alpha = .2) + geom_density(col=2) + labs(title="actv_sales_mkt_s_not_release") + labs(x="", y="")
+
+
+actv_peso <- plot_grid(c_1, c_2, c_3, c_4,ncol = 2, nrow = 2)
+savePlot(actv_peso, "./output/histograma_peso_ativo.pdf")
+
+
+------
+  
+  
+c_1 <- ggplot(data=actv_sales_mkt_d_release, aes(actv_sales_mkt_d_release$StrengthFactor)) + geom_histogram(aes(y =..density..),breaks=seq(min(actv_sales_mkt_d_release$StrengthFactor, na.rm=TRUE), max(actv_sales_mkt_d_release$StrengthFactor, na.rm=TRUE), by = Intervalo(nrow(actv_sales_mkt_d_release),min(hist_sales_mkt_d_sold_release$StrengthFactor, na.rm=TRUE),max(actv_sales_mkt_d_release$StrengthFactor, na.rm=TRUE))), col="blue", fill="blue", alpha = .2) + geom_density(col=2) + labs(title="actv_sales_mkt_d_release") + labs(x="", y="")
+c_2 <- ggplot(data=actv_sales_mkt_d_not_release, aes(actv_sales_mkt_d_not_release$StrengthFactor)) + geom_histogram(aes(y =..density..),breaks=seq(min(actv_sales_mkt_d_not_release$StrengthFactor, na.rm=TRUE), max(actv_sales_mkt_d_not_release$StrengthFactor, na.rm=TRUE), by = Intervalo(nrow(actv_sales_mkt_d_not_release),min(actv_sales_mkt_d_not_release$StrengthFactor, na.rm=TRUE),max(actv_sales_mkt_d_not_release$StrengthFactor, na.rm=TRUE))), col="blue", fill="blue", alpha = .2) + geom_density(col=2) + labs(title="actv_sales_mkt_d_not_release") + labs(x="", y="")
+c_3 <- ggplot(data=actv_sales_mkt_s_release, aes(actv_sales_mkt_s_release$StrengthFactor)) + geom_histogram(aes(y =..density..),breaks=seq(min(actv_sales_mkt_s_release$StrengthFactor, na.rm=TRUE), max(actv_sales_mkt_s_release$StrengthFactor, na.rm=TRUE), by = Intervalo(nrow(actv_sales_mkt_s_release),min(actv_sales_mkt_s_release$StrengthFactor, na.rm=TRUE),max(actv_sales_mkt_s_release$StrengthFactor, na.rm=TRUE))), col="blue", fill="blue", alpha = .2) + geom_density(col=2) + labs(title="actv_sales_mkt_s_release") + labs(x="", y="")
+c_4 <- ggplot(data=actv_sales_mkt_s_not_release, aes(actv_sales_mkt_s_not_release$StrengthFactor)) + geom_histogram(aes(y =..density..),breaks=seq(min(actv_sales_mkt_s_not_release$StrengthFactor, na.rm=TRUE), max(actv_sales_mkt_s_not_release$StrengthFactor, na.rm=TRUE), by = Intervalo(nrow(actv_sales_mkt_s_not_release),min(actv_sales_mkt_s_not_release$StrengthFactor, na.rm=TRUE),max(actv_sales_mkt_s_not_release$StrengthFactor, na.rm=TRUE))), col="blue", fill="blue", alpha = .2) + geom_density(col=2) + labs(title="actv_sales_mkt_s_not_release") + labs(x="", y="")
+
+
+actv_peso <- plot_grid(c_1, c_2, c_3, c_4,ncol = 2, nrow = 2)
+savePlot(actv_item_analise, "./output/histograma_peso_ativo.pdf")
+
+
+
+
+actv_sales_mkt_d_release%>%ggplot(aes(x=StrengthFactor, y=ItemCount))+
+  geom_point(color="blue",size=1,alpha=1)+
+  xlab('Itens em estoque')+          
+  ylab('Quantidade em estoque')+
+  ggtitle('titulo')+
+  theme(plot.title = element_text(size = 14,colour="red"))
+
+
+#BOXPLOT
+ggplot(actv_sales_mkt_d_release, aes(x=ReleaseYear, y=SoldCount)) + 
+  geom_boxplot(notch=FALSE)
+
 
 #DIVISAO 
 
