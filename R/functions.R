@@ -36,3 +36,12 @@ Intervalo <- function(n, min, max){
   return(round((max-min)/Sturge(n)))
 }
 
+#sempre entre 0 e 1
+Normalize <- function(x){
+  return((x-min(x))/(max(x)-min(x))) 
+}
+
+#Min e Max dinamico
+NormalizeDinamic <- function(x){
+  return((x-min(x))/(max(x)-min(x))*((max-min)+max)) 
+}
