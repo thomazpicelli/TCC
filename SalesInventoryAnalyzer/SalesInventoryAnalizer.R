@@ -41,15 +41,19 @@ inventory$NormalizeExpense <- NA
 inventory$NormalizeStrengthFactor <- NA
 inventory$NormalizeSomado <- NA
 inventory$NormalizePonderado <- NA
+inventory$PercExpense <- NA
+
 
 # data filter -- divisao de mercado e tipo (Active X Historical)
-
 # historico e D
 hist_inventory_mkt_d <- inventory[inventory$File_Type == 'Historical' & inventory$MarketingType == "D" & inventory$PriceReg > 0,]
   hist_inventory_mkt_d$NormalizeSoldCount <- Normalize(hist_inventory_mkt_d$SoldCount)
   hist_inventory_mkt_d$NormalizeItemCount <- Normalize(hist_inventory_mkt_d$ItemCount)
   hist_inventory_mkt_d$NormalizeStrengthFactor <- Normalize(hist_inventory_mkt_d$StrengthFactor)
   hist_inventory_mkt_d$NormalizeExpense <- Normalize(hist_inventory_mkt_d$expense)
+  
+  hist_inventory_mkt_d <- hist_inventory_mkt_d[order(hist_inventory_mkt_d$NormalizeExpense, decreasing=c(TRUE)),]
+  hist_inventory_mkt_d$PercExpense <- hist_inventory_mkt_d$expense / sum(hist_inventory_mkt_d$expense)
   
 # historico e S
 hist_inventory_mkt_s <- inventory[inventory$File_Type == 'Historical' & inventory$MarketingType == "S" & inventory$PriceReg > 0,]
@@ -58,6 +62,9 @@ hist_inventory_mkt_s <- inventory[inventory$File_Type == 'Historical' & inventor
   hist_inventory_mkt_s$NormalizeStrengthFactor <- Normalize(hist_inventory_mkt_s$StrengthFactor)
   hist_inventory_mkt_s$NormalizeExpense <- Normalize(hist_inventory_mkt_s$expense)
   
+  hist_inventory_mkt_s <- hist_inventory_mkt_s[order(hist_inventory_mkt_s$NormalizeExpense, decreasing=c(TRUE)),]
+  hist_inventory_mkt_s$PercExpense <- hist_inventory_mkt_s$expense / sum(hist_inventory_mkt_s$expense)
+  
 # Ativo e D
 actv_inventory_mkt_d <- inventory[inventory$File_Type == 'Active' & inventory$MarketingType == "D" & inventory$PriceReg > 0,]
   actv_inventory_mkt_d$NormalizeSoldCount <- Normalize(actv_inventory_mkt_d$SoldCount)
@@ -65,12 +72,18 @@ actv_inventory_mkt_d <- inventory[inventory$File_Type == 'Active' & inventory$Ma
   actv_inventory_mkt_d$NormalizeStrengthFactor <- Normalize(actv_inventory_mkt_d$StrengthFactor)
   actv_inventory_mkt_d$NormalizeExpense <- Normalize(actv_inventory_mkt_d$expense)
   
+  actv_inventory_mkt_d <- actv_inventory_mkt_d[order(actv_inventory_mkt_d$NormalizeExpense, decreasing=c(TRUE)),]
+  actv_inventory_mkt_d$PercExpense <- actv_inventory_mkt_d$expense / sum(actv_inventory_mkt_d$expense)
+  
 # Ativo e S
 actv_inventory_mkt_s <- inventory[inventory$File_Type == 'Active' & inventory$MarketingType == "S" & inventory$PriceReg > 0,]
   actv_inventory_mkt_s$NormalizeSoldCount <- Normalize(actv_inventory_mkt_s$SoldCount)
   actv_inventory_mkt_s$NormalizeItemCount <- Normalize(actv_inventory_mkt_s$ItemCount)
   actv_inventory_mkt_s$NormalizeStrengthFactor <- Normalize(actv_inventory_mkt_s$StrengthFactor)
   actv_inventory_mkt_s$NormalizeExpense <- Normalize(actv_inventory_mkt_s$expense)
+  
+  actv_inventory_mkt_s <- actv_inventory_mkt_s[order(actv_inventory_mkt_s$NormalizeExpense, decreasing=c(TRUE)),]
+  actv_inventory_mkt_s$PercExpense <- actv_inventory_mkt_s$expense / sum(actv_inventory_mkt_s$expense)
   
 
 # Exploring analitics ####
@@ -96,9 +109,9 @@ hist_hist_inventory_mkt_s <-
     geom_vline(data = hist_inventory_mkt_s, aes(xintercept = median(hist_inventory_mkt_s$NormalizeStrengthFactor)), col="red", linetype = "dashed", size = 1) + 
     theme(plot.title = element_text(size=36),axis.text=element_text(size=14), axis.title=element_text(size=16,face="bold"), panel.background = element_rect(fill = "#eeeeee"), panel.grid.minor = element_line(colour="white", size=0.5))
   
-hist_peso <- 
+histOgram_StrengthFactor <- 
   plot_grid(hist_hist_inventory_mkt_d, hist_hist_inventory_mkt_s, ncol = 2, nrow = 1)
-savePlot(hist_peso, "./output/hist_peso.pdf")
+savePlot(NormalizeExpense, "./output/histOgram_StrengthFactor.pdf")
 
 
 hist2_hist_inventory_mkt_d <- ggplot(data=hist_inventory_mkt_d, aes(hist_inventory_mkt_d$NormalizeExpense)) + geom_histogram(aes(y = ..count..),breaks=seq(min(hist_inventory_mkt_d$NormalizeExpense, na.rm=TRUE), max(hist_inventory_mkt_d$NormalizeExpense, na.rm=TRUE), by = 0.025), col="blue", fill="blue", alpha = .2) + geom_density(col=2) + labs(title="") + labs(x="", y="frequency")
@@ -130,9 +143,10 @@ hist_inventory_mkt_d_ABC_1 <- read.csv("./data/hist_D_import.csv", header = T, s
 hist_inventory_mkt_d_ABC_1$NormalizeStrengthFactor <- as.numeric(gsub(",", ".", gsub("\\.", "", hist_inventory_mkt_d_ABC_1$NormalizeStrengthFactor)))
 hist_inventory_mkt_d_ABC_1$NormalizeExpense <- as.numeric(gsub(",", ".", gsub("\\.", "", hist_inventory_mkt_d_ABC_1$NormalizeExpense)))
 
-ggplot(hist_inventory_mkt_d_ABC_1, aes(hist_inventory_mkt_d_ABC_1$NormalizeExpense, hist_inventory_mkt_d_ABC_1$NormalizeStrengthFactor, color = hist_inventory_mkt_d_ABC_1$classe)) +
+plot_1_1 <-
+  ggplot(hist_inventory_mkt_d_ABC_1, aes(hist_inventory_mkt_d_ABC_1$NormalizeExpense, hist_inventory_mkt_d_ABC_1$NormalizeStrengthFactor, color = hist_inventory_mkt_d_ABC_1$classe)) +
     geom_point() + 
-    scale_colour_manual(values = c("#51C0FF","#51C0FF", "#00A2FF", "#00517F")) +
+    scale_colour_manual(values = c("#51C0FF","#51C0FF", "#3476DD", "#1C2836")) +
     theme(plot.title = element_text(size=0),axis.text=element_text(size=14), axis.title=element_text(size=0), legend.position = "none") + labs(x="", y="", title="", colour = "Classe")
 
 
@@ -145,10 +159,11 @@ hist_inventory_mkt_s_ABC_1 <- read.csv("./data/hist_S_import.csv", header = T, s
 hist_inventory_mkt_s_ABC_1$NormalizeStrengthFactor <- as.numeric(gsub(",", ".", gsub("\\.", "", hist_inventory_mkt_s_ABC_1$NormalizeStrengthFactor)))
 hist_inventory_mkt_s_ABC_1$NormalizeExpense <- as.numeric(gsub(",", ".", gsub("\\.", "", hist_inventory_mkt_s_ABC_1$NormalizeExpense)))
 
-ggplot(hist_inventory_mkt_s_ABC_1, aes(hist_inventory_mkt_s_ABC_1$NormalizeExpense, hist_inventory_mkt_s_ABC_1$NormalizeStrengthFactor, color = hist_inventory_mkt_s_ABC_1$classe)) +
-  geom_point() + 
-  scale_colour_manual(values = c("#51C0FF","#51C0FF", "#00A2FF", "#00517F")) +
-  theme(plot.title = element_text(size=0),axis.text=element_text(size=14), axis.title=element_text(size=0), legend.position = "none") + labs(x="", y="", title="", colour = "Classe")
+plot_1_2 <-
+  ggplot(hist_inventory_mkt_s_ABC_1, aes(hist_inventory_mkt_s_ABC_1$NormalizeExpense, hist_inventory_mkt_s_ABC_1$NormalizeStrengthFactor, color = hist_inventory_mkt_s_ABC_1$classe)) +
+    geom_point() + 
+    scale_colour_manual(values = c("#51C0FF","#51C0FF", "#3476DD", "#1C2836")) +
+    theme(plot.title = element_text(size=0),axis.text=element_text(size=14), axis.title=element_text(size=0), legend.position = "none") + labs(x="", y="", title="", colour = "Classe")
 
 
 
@@ -167,21 +182,25 @@ k1 <-kmeans(hist_inventory_mkt_d[,20], centers=3)
 k2 <-kmeans(hist_inventory_mkt_s[,20], centers=3)
 
 # Results
-table(k$cluster)
-k$centers
+table(k1$cluster)
+table(k2$cluster)
+k1$centers
+k2$centers
 
 hist_inventory_mkt_d$cluster1 <- as.character(k1$cluster)
 hist_inventory_mkt_s$cluster1 <- as.character(k2$cluster)
 
 #PLOT
+plot_2_1 <-
 ggplot(hist_inventory_mkt_d, aes(hist_inventory_mkt_d$NormalizeExpense, hist_inventory_mkt_d$NormalizeStrengthFactor, color = hist_inventory_mkt_d$cluster1)) +
   geom_point() + 
-  scale_colour_manual(values = c("#51C0FF", "#00A2FF", "#00517F")) +
+  scale_colour_manual(values = c("#51C0FF", "#1C2836", "#3476DD")) +
   theme(plot.title = element_text(size=0),axis.text=element_text(size=14), axis.title=element_text(size=0), legend.position = "none") + labs(x="", y="", title="", colour = "Classe")
 
+plot_2_2 <-
 ggplot(hist_inventory_mkt_s, aes(hist_inventory_mkt_s$NormalizeExpense, hist_inventory_mkt_s$NormalizeStrengthFactor, color = hist_inventory_mkt_s$cluster1)) +
   geom_point() + 
-  scale_colour_manual(values = c("#51C0FF", "#00A2FF", "#00517F")) +
+  scale_colour_manual(values = c("#3476DD", "#1C2836", "#51C0FF")) +
   theme(plot.title = element_text(size=0),axis.text=element_text(size=14), axis.title=element_text(size=0), legend.position = "none") + labs(x="", y="", title="", colour = "Classe")
 
 
@@ -197,26 +216,46 @@ k4 <-kmeans(hist_inventory_mkt_s[,21], centers=3)
 
 
 # Results
-table(k$cluster)
-k$centers
+table(k3$cluster)
+table(k4$cluster)
+k3$centers
+k4$centers
 
 hist_inventory_mkt_d$cluster2 <- as.character(k3$cluster)
 hist_inventory_mkt_s$cluster2 <- as.character(k4$cluster)
 
 #PLOT
+plot_3_1 <-
 ggplot(hist_inventory_mkt_d, aes(hist_inventory_mkt_d$NormalizeExpense, hist_inventory_mkt_d$NormalizeStrengthFactor, color = hist_inventory_mkt_d$cluster2)) +
   geom_point() + 
-  scale_colour_manual(values = c("#51C0FF", "#00A2FF", "#00517F")) +
+  scale_colour_manual(values = c("#1C2836", "#51C0FF", "#3476DD")) +
   theme(plot.title = element_text(size=0),axis.text=element_text(size=14), axis.title=element_text(size=0), legend.position = "none") + labs(x="", y="", title="", colour = "Classe")
 
+plot_3_2 <-
 ggplot(hist_inventory_mkt_s, aes(hist_inventory_mkt_s$NormalizeExpense, hist_inventory_mkt_s$NormalizeStrengthFactor, color = hist_inventory_mkt_s$cluster2)) +
   geom_point() + 
-  scale_colour_manual(values = c("#51C0FF", "#00A2FF", "#00517F")) +
+  scale_colour_manual(values = c("#3476DD", "#1C2836", "#51C0FF")) +
   theme(plot.title = element_text(size=0),axis.text=element_text(size=14), axis.title=element_text(size=0), legend.position = "none") + labs(x="", y="", title="", colour = "Classe")
 
 
 
 
+plot_grid(plot_1_1, plot_2_1, plot_3_1, plot_1_2, plot_2_2, plot_3_2, ncol = 3, nrow = 2)
+
+
+#motagem da tabela
+
+table(k1$cluster)
+tapply(hist_inventory_mkt_d$PercExpense, hist_inventory_mkt_d$cluster1, FUN=sum)
+
+table(k2$cluster)
+tapply(hist_inventory_mkt_s$PercExpense, hist_inventory_mkt_s$cluster1, FUN=sum)
+
+table(k3$cluster)
+tapply(hist_inventory_mkt_d$PercExpense, hist_inventory_mkt_d$cluster2, FUN=sum)
+
+table(k4$cluster)
+tapply(hist_inventory_mkt_s$PercExpense, hist_inventory_mkt_s$cluster2, FUN=sum)
 
 
 #determining optimum number of clusters for k-means
